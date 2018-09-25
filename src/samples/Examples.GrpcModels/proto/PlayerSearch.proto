@@ -1,0 +1,58 @@
+﻿
+syntax = "proto3";
+
+option csharp_namespace = "Examples.GrpcModels";
+
+message Player
+{
+	string Name = 1;
+	int32 Age = 2;
+	repeated string Positions = 3;
+	string TeamCode = 4; 
+}
+
+message Team
+{
+	string Code = 1;
+	string Name = 2;
+	string Country = 3;
+}
+
+message TeamSearchRequest
+{
+	int32 ExpectedDataCount = 1;
+	string Name = 2;
+	string Country = 3;
+}
+
+message TeamSearchResponse
+{
+	repeated Team Teams = 1;
+}
+
+message PlayerSearchRequest
+{
+	int32 ExpectedDataCount = 1;
+	string PlayerName = 2;
+	string TeamName = 3;
+	string Position = 4;
+}
+
+message PlayerSearchResponse
+{
+	repeated Player Players = 1;
+	map<string, Team> Teams = 2;
+}
+
+
+service PlayerSearch {
+
+	rpc SearchTeam (TeamSearchRequest) returns (TeamSearchResponse){}
+
+	rpc SearchPlayer_ServerStream (PlayerSearchRequest) returns (stream PlayerSearchResponse){}
+
+	rpc SearchPlayer_ClientStream (stream PlayerSearchRequest) returns (PlayerSearchResponse){}
+
+	rpc SearchPlayer_DuplexStream (stream PlayerSearchRequest) returns (stream PlayerSearchResponse){}
+	
+}
