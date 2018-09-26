@@ -11,6 +11,8 @@ namespace Built.Grpcc
             services.TryAddSingleton<CodeGenerater>();
             services.TryAddSingleton<ServiceDescriptor>();
             services.TryAddSingleton<GrpcPool>();
+            services.TryAddSingleton<GrpcPluginFactory>();
+            services.TryAddSingleton<GrpcProtoFactory>();
             //services.TryAddSingleton<IGrpcChannelFactory, GrpcChannelFactory>();
             //services.TryAddTransient<IGrpcRequestBuilder, GrpcRequestBuilder>();
             return services;

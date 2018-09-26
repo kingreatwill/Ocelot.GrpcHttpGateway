@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Built.Grpcc
+namespace Built.Grpcc.Utils
 
 {
     /// <summary>

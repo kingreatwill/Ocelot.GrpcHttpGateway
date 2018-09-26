@@ -19,6 +19,9 @@ namespace Built.Grpcc
 
         public CodeBuilder(ILogger<CodeBuilder> logger)
         {
+            // 注册编码;
+            //System.Text.Encoding.CodePages GB2312
+            Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);//Encoding.GetEncoding("GB2312")
             this.logger = logger;
         }
 
@@ -31,7 +34,6 @@ namespace Built.Grpcc
             List<SyntaxTree> trees = new List<SyntaxTree>();
             foreach (var file in dllFiles)
             {
-                // https://www.cnblogs.com/wolf-sun/p/6136482.html
                 var csStr = File.ReadAllText(file, encoding: Encoding.GetEncoding("GB2312"));
                 trees.Add(CSharpSyntaxTree.ParseText(csStr, encoding: Encoding.UTF8));
             }

@@ -12,7 +12,7 @@ namespace Built.Grpcc
     {
         public ConcurrentDictionary<string, ConcurrentDictionary<string, MethodDescriptor>> Descriptor { get; } = new ConcurrentDictionary<string, ConcurrentDictionary<string, MethodDescriptor>>();
 
-        protected virtual void GetGrpcDescript(Type[] types)
+        public virtual void AddGrpcDescript(Type[] types)
         {
             var fileTypes = types.Where(type => type.Name.EndsWith("Reflection"));
             foreach (var type in fileTypes)
