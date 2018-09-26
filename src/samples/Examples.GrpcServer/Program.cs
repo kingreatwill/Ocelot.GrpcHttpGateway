@@ -25,7 +25,7 @@ namespace Examples.GrpcServer
             };
             var s = PlayerSearch.Descriptor.FullName;
             var dsfs = PlayerSearchReflection.Descriptor;
-
+            server.Start();
             Console.WriteLine("PlayerSearch server listening on port " + Port);
             Console.WriteLine("Press any key to stop the server...");
             Console.ReadKey();
