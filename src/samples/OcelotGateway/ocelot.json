@@ -1,0 +1,69 @@
+﻿{
+  "ReRoutes": [
+    {
+      "DownstreamPathTemplate": "/{url}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": "5001"
+        }
+      ],
+      "UpstreamPathTemplate": "/lb1/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/{url}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": "5002"
+        }
+      ],
+      "UpstreamPathTemplate": "/lb2/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/{url}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 5001
+        },
+        {
+          "Host": "127.0.0.1",
+          "Port": 5002
+        }
+
+      ],
+      "UpstreamPathTemplate": "/lb/{url}",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      },
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+
+    {
+      "DownstreamPathTemplate": "/{url}",
+      "DownstreamScheme": "grpc",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 50001
+        },
+        {
+          "Host": "127.0.0.1",
+          "Port": 50002
+        }
+
+      ],
+      "UpstreamPathTemplate": "/grpc/{url}",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin" //LeastConnection,RoundRobin,NoLoadBalance(无或者服务发现)
+      },
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    }
+  ]
+}

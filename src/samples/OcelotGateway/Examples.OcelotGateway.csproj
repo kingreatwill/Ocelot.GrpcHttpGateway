@@ -14,7 +14,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Ocelot.GrpcHttpGateway\Built.Grpcc\Built.Grpcc.csproj" />
+    <ProjectReference Include="..\..\Ocelot.GrpcHttpGateway\Ocelot.GrpcHttpGateway\Ocelot.GrpcHttpGateway.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="ocelot.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
