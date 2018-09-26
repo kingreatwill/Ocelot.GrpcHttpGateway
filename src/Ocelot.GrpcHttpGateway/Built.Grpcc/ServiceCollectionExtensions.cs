@@ -5,7 +5,7 @@ namespace Built.Grpcc
 {
     public static class ServiceCollectionExtensions
     {
-        private static IServiceCollection AddServices(this IServiceCollection services)
+        public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.TryAddSingleton<CodeBuilder>();
             services.TryAddSingleton<CodeGenerater>();
