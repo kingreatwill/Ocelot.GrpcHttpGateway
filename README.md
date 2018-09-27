@@ -3,12 +3,12 @@ grpc service gateway used ocelot
 
 
 
-##What functions does he have?
+## What functions does he have?
 
 * load .dll files
 * load proto files
 
-##Getting Started
+## Getting Started
 
 * cd samples\OcelotGateway and dotnet run
 * cd samples\Examples.GrpcServer  and dotnet run
