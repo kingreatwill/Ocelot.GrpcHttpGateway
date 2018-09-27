@@ -1,12 +1,9 @@
 ﻿using Built.Grpcc.Utils;
-using Google.Protobuf.Reflection;
-using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,62 +26,25 @@ namespace Built.Grpcc
         private readonly GrpcPluginFactory pluginFactory;
         private readonly CodeGenerater codeGenerater;
         private readonly CodeBuilder codeBuilder;
+        private readonly GrpcHttpGatewayConfiguration config;
+        public ProducerConsumer<string> protoQueue;
 
-        public GrpcProtoFactory(GrpcPluginFactory pluginFactory, CodeGenerater codeGenerater, CodeBuilder codeBuilder, ILogger<GrpcProtoFactory> logger)
+        public GrpcProtoFactory(GrpcPluginFactory pluginFactory, IOptions<GrpcHttpGatewayConfiguration> config, CodeGenerater codeGenerater, CodeBuilder codeBuilder, ILogger<GrpcProtoFactory> logger)
         {
             this.logger = logger;
             this.pluginFactory = pluginFactory;
             this.codeGenerater = codeGenerater;
             this.codeBuilder = codeBuilder;
+            this.config = config.Value;
+            protoQueue = new ProducerConsumer<string>(protoFileName => LoadAsync(protoFileName).Wait());
+            if (this.config.ProtoMonitor)
+                MonitorStart();
         }
 
-        public static readonly string BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        public readonly string PluginPath = Path.Combine(BaseDirectory, "plugins");
-        public readonly string ProtoPath = Path.Combine(BaseDirectory, "protos");
-
-        // proto文件队列;
-        public ProducerConsumer<string> ProtoQueue = new ProducerConsumer<string>(protoFileName =>
-        {
-            logger.LogDebug("出队:" + protoFileName);
-            try
-            {
-                if (codeGenerater.Generate(BaseDirectory, protoFileName))
-                {
-                    InnerLogger.Log(LoggerLevel.Debug, "生成成功:" + protoFileName);
-                    var name = Path.GetFileNameWithoutExtension(protoFileName);
-                    var csharp_out = Path.Combine(BaseDirectory, $"plugins/.{name}");
-                    if (CodeBuild.Build(csharp_out, name))
-                    {
-                        InnerLogger.Log(LoggerLevel.Debug, "Build成功:" + protoFileName);
-                        var dllPath = Path.Combine(csharp_out, $"{name}.dll");
-                        var xmlDocPath = Path.Combine(csharp_out, $"{name}.xml");
-                        //生成plugin.yml
-                        var serializer = new SerializerBuilder().Build();
-                        var yaml = serializer.Serialize(new ProtoPluginModel
-                        {
-                            DllFileMD5 = dllPath.GetMD5(),
-                            FileName = name,
-                            ProtoFileMD5 = protoFileName.GetMD5(),
-                            XmlFileMD5 = xmlDocPath.GetMD5()
-                        });
-                        File.WriteAllText(Path.Combine(csharp_out, "plugin.yml"), yaml);
-                        DllQueue.Enqueue(dllPath);
-                    }
-                    else
-                    {
-                        InnerLogger.Log(LoggerLevel.Debug, "Build失败:" + protoFileName);
-                    }
-                }
-                else
-                {
-                    InnerLogger.Log(LoggerLevel.Debug, "生成失败:" + protoFileName);
-                }
-            }
-            catch (Exception er)
-            {
-                InnerLogger.Log(LoggerLevel.Debug, "出队:" + er.StackTrace);
-            }
-        });
+        private DirectoryMonitor monitor;
+        private static readonly string BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        private readonly string PluginPath = Path.Combine(BaseDirectory, "plugins");
+        private readonly string ProtoPath = Path.Combine(BaseDirectory, "protos");
 
         public Task InitAsync()
         {
@@ -121,7 +81,7 @@ namespace Built.Grpcc
                                         var kv = strReadline.Split(':');
                                         if (kv.Length == 2)
                                         {
-                                            dic.Add(kv[0], kv[1]);
+                                            dic.Add(kv[0].Trim(), kv[1].Trim());
                                         }
                                     }
                                 }
@@ -149,7 +109,7 @@ namespace Built.Grpcc
                     }
                     if (NeedGenerate)
                     {
-                        ProtoQueue.Enqueue(file);
+                        protoQueue.Enqueue(file);
                     }
                     else
                     {
@@ -159,15 +119,83 @@ namespace Built.Grpcc
             });
         }
 
-        public Task LoadAsync(string fileFullPath)
+        private Task LoadAsync(string fileFullPath)
         {
             logger.LogDebug($"LoadAsync[{fileFullPath}]");
             return Task.Run(() =>
             {
                 logger.LogDebug($"Run Start[{fileFullPath}]");
+                logger.LogDebug("出队:" + fileFullPath);
+                try
+                {
+                    if (codeGenerater.Generate(BaseDirectory, fileFullPath))
+                    {
+                        logger.LogDebug("生成成功:" + fileFullPath);
+                        var name = Path.GetFileNameWithoutExtension(fileFullPath);
+                        var csharp_out = Path.Combine(BaseDirectory, $"plugins/.{name}");
+                        if (codeBuilder.Build(csharp_out, name))
+                        {
+                            logger.LogDebug("Build成功:" + fileFullPath);
+                            var dllPath = Path.Combine(csharp_out, $"{name}.dll");
+                            var xmlDocPath = Path.Combine(csharp_out, $"{name}.xml");
 
+                            var model = new ProtoPluginModel
+                            {
+                                DllFileMd5 = dllPath.FileMd5(),
+                                FileName = name,
+                                ProtoFileMd5 = fileFullPath.FileMd5(),
+                                XmlFileMd5 = xmlDocPath.FileMd5()
+                            };
+
+                            #region 文件写入
+
+                            using (FileStream fs = new FileStream(Path.Combine(csharp_out, "plugin.yml"), FileMode.Create, FileAccess.Write))
+                            {
+                                using (StreamWriter writer = new StreamWriter(fs, Encoding.Default))
+                                {
+                                    writer.Write($"FileName: {model.FileName}");
+                                    writer.Write($"DllFileMd5: {model.DllFileMd5}");
+                                    writer.Write($"ProtoFileMd5: {model.ProtoFileMd5}");
+                                    writer.Write($"XmlFileMd5: {model.XmlFileMd5}");
+                                    writer.Flush();
+                                }
+                            }
+
+                            #endregion 文件写入
+
+                            // dll加载;
+                            pluginFactory.LoadAsync(dllPath).Wait();
+                        }
+                        else
+                        {
+                            logger.LogError("Build失败:" + fileFullPath);
+                        }
+                    }
+                    else
+                    {
+                        logger.LogError("生成失败:" + fileFullPath);
+                    }
+                }
+                catch (Exception er)
+                {
+                    logger.LogError($"出队:{fileFullPath}", er);
+                }
                 logger.LogDebug($"Run End[{fileFullPath}]");
             });
+        }
+
+        /// <summary>
+        /// 开启监控
+        /// </summary>
+        private void MonitorStart()
+        {
+            if (!Directory.Exists(ProtoPath)) Directory.CreateDirectory(ProtoPath);
+            monitor = new DirectoryMonitor(ProtoPath, "*.proto");
+            monitor.Change += (string filePath) =>
+            {
+                protoQueue.Enqueue(filePath);
+            };
+            monitor.Start();
         }
     }
 }

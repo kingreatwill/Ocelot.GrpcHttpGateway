@@ -61,11 +61,11 @@ namespace Ocelot.GrpcHttpGateway
             OkResponse<GrpcHttpContent> httpResponse;
             if (string.IsNullOrEmpty(errMessage))
             {
-                httpResponse = new OkResponse<GrpcHttpContent>(new GrpcHttpContent(errMessage));
+                httpResponse = new OkResponse<GrpcHttpContent>(new GrpcHttpContent(result));
             }
             else
             {
-                httpResponse = new OkResponse<GrpcHttpContent>(new GrpcHttpContent(result));
+                httpResponse = new OkResponse<GrpcHttpContent>(new GrpcHttpContent(errMessage));
             }
             context.HttpContext.Response.ContentType = "application/json";
             context.DownstreamResponse = new DownstreamResponse(httpResponse.Data, httpStatusCode, httpResponse.Data.Headers, "OcelotGrpcHttpMiddleware");

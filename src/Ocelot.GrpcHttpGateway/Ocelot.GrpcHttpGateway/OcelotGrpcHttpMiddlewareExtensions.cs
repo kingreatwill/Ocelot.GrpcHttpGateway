@@ -1,4 +1,7 @@
-﻿using Ocelot.Authentication.Middleware;
+﻿using Built.Grpcc;
+using Built.Grpcc.Utils;
+using Microsoft.AspNetCore.Builder;
+using Ocelot.Authentication.Middleware;
 using Ocelot.Authorisation.Middleware;
 using Ocelot.Cache.Middleware;
 using Ocelot.Claims.Middleware;
@@ -116,7 +119,18 @@ namespace Ocelot.GrpcHttpGateway
 
         public static IOcelotPipelineBuilder UseGrpcHttpMiddleware(this IOcelotPipelineBuilder builder)
         {
+            ServiceLocator.Instance = builder.ApplicationServices;
+            var plugin = ServiceLocator.GetService<GrpcPluginFactory>();
+            var proto = ServiceLocator.GetService<GrpcProtoFactory>();
+            plugin.InitAsync();
+            proto.InitAsync();
             return builder.UseMiddleware<OcelotGrpcHttpMiddleware>();
         }
+
+        //public static IApplicationBuilder UseGrpcHttpMiddleware(this IApplicationBuilder builder)
+        //{
+        //    ServiceLocator.Instance = builder.ApplicationServices;
+        //    return builder.UseMiddleware<OcelotGrpcHttpMiddleware>();
+        //}
     }
 }

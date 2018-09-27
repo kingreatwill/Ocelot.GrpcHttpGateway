@@ -51,11 +51,11 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "127.0.0.1",
-          "Port": 50001
+          "Port": 50051
         },
         {
           "Host": "127.0.0.1",
-          "Port": 50002
+          "Port": 50051
         }
 
       ],

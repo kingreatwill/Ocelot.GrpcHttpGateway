@@ -1,6 +1,7 @@
 ﻿using Built.Grpcc.Utils;
 using Google.Protobuf.Reflection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,15 +15,21 @@ namespace Built.Grpcc
     public class GrpcPluginFactory
     {
         private static readonly string BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        private readonly string PluginPath = Path.Combine(BaseDirectory, "plugins");
+        private static readonly string PluginPath = Path.Combine(BaseDirectory, "plugins");
 
+        private DirectoryMonitor monitor;
         private readonly ILogger logger;
-        private readonly ServiceDescriptor serviceDescriptor;
 
-        public GrpcPluginFactory(ServiceDescriptor serviceDescriptor, ILogger<GrpcPluginFactory> logger)
+        private readonly ServiceDescriptor serviceDescriptor;
+        private readonly GrpcHttpGatewayConfiguration config;
+
+        public GrpcPluginFactory(ServiceDescriptor serviceDescriptor, IOptions<GrpcHttpGatewayConfiguration> config, ILogger<GrpcPluginFactory> logger)
         {
             this.logger = logger;
+            this.config = config.Value;
             this.serviceDescriptor = serviceDescriptor;
+            if (this.config.PluginMonitor)
+                MonitorStart();
         }
 
         public Task InitAsync()
@@ -37,6 +44,20 @@ namespace Built.Grpcc
                     LoadAsync(file);
                 }
             });
+        }
+
+        /// <summary>
+        /// 开启监控
+        /// </summary>
+        private void MonitorStart()
+        {
+            if (!Directory.Exists(PluginPath)) Directory.CreateDirectory(PluginPath);
+            monitor = new DirectoryMonitor(PluginPath, "*.dll");
+            monitor.Change += (string filePath) =>
+            {
+                LoadAsync(filePath);
+            };
+            monitor.Start();
         }
 
         public Task LoadAsync(string fileFullPath)

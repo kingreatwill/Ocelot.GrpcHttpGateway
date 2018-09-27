@@ -23,7 +23,7 @@ namespace Examples.OcelotGateway
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOcelot(Configuration).AddGrpcHttpGateway();
+            services.AddOcelot(Configuration).AddGrpcHttpGateway(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -35,12 +35,13 @@ namespace Examples.OcelotGateway
             }
             //, ILoggerFactory loggerFactory
             //loggerFactory.AddConsole();
-            app.Run(async (context) =>
-            {
-                //CodeBuild.Build("fasdf", "");
-                await context.Response.WriteAsync("Hello World!");
-            });
-            ServiceLocator.Instance = app.ApplicationServices;
+            //app.Run(async (context) =>
+            //{
+            //    //CodeBuild.Build("fasdf", "");
+            //    await context.Response.WriteAsync("Hello World!");
+            //});
+            //ServiceLocator.Instance = app.ApplicationServices;
+
             app.UseOcelot(config =>
             {
                 config.AddGrpcHttpGateway();
