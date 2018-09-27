@@ -64,6 +64,19 @@
         "Type": "RoundRobin" //LeastConnection,RoundRobin,NoLoadBalance(无或者服务发现)
       },
       "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/PlayerSearch/{url}", //PlayerSearch是grpc的name
+      "DownstreamScheme": "grpc",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "127.0.0.1",
+          "Port": 50051
+        }
+      ],
+      "UpstreamPathTemplate": "/grpc1/ps/{url}", // http://localhost:5000/grpc1/ps/SEARCHTEAM
+      //"ServiceName": "PlayerSearchServiceName", //注册consul的name，不是grpc的name
+      "UpstreamHttpMethod": [ "Get", "Post" ]
     }
   ]
 }
