@@ -7,6 +7,8 @@ grpc service gateway used ocelot
 
 * load .dll files
 * load proto files
+* support header
+* support unary,client streaming, server streaming, duplex streaming
 
 ## Getting Started
 
