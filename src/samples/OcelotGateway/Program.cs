@@ -27,7 +27,8 @@ namespace Examples.OcelotGateway
                 .UseUrls($"http://{IP}:{Port}")
                 .ConfigureAppConfiguration((hostingContext, builder) =>
                 {
-                    builder.AddJsonFile("ocelot.json", false, true);
+                    builder.AddYamlFile("appsettings.yml", false, true);
+                    builder.AddYamlFile("ocelot.yml", false, true);
                 });
     }
 }

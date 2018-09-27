@@ -1,0 +1,12 @@
+﻿ReRoutes:
+  -
+    DownstreamPathTemplate: "/{url}"
+    DownstreamScheme: grpc
+    DownstreamHostAndPorts:
+      -
+       Host: "127.0.0.1"
+       Port: 50051
+    UpstreamPathTemplate: "/grpc/{url}"
+    LoadBalancerOptions:
+      Type: RoundRobin
+    UpstreamHttpMethod: [ "Get", "Post" ]

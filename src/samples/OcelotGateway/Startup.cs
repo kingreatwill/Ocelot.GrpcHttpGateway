@@ -26,19 +26,10 @@ namespace Examples.OcelotGateway
             services.AddOcelot(Configuration).AddGrpcHttpGateway(Configuration);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        private static void HandleHome(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            app.Run(async context =>
             {
-                app.UseDeveloperExceptionPage();
-            }
-            //, ILoggerFactory loggerFactory
-            //loggerFactory.AddConsole();
-            app.Run(async (context) =>
-            {
-                //CodeBuild.Build("fasdf", "");
-
                 var sd = ServiceLocator.GetService<Built.Grpcc.ServiceDescriptor>();
                 foreach (var srv in sd.Descriptor)
                 {
@@ -49,8 +40,17 @@ namespace Examples.OcelotGateway
                     }
                 }
             });
-            //ServiceLocator.Instance = app.ApplicationServices;
+        }
 
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            app.Map("/srv", HandleHome);
+            //ServiceLocator.Instance = app.ApplicationServices;
             app.UseOcelot(config =>
             {
                 config.AddGrpcHttpGateway();
