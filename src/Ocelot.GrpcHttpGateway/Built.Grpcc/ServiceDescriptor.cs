@@ -26,12 +26,12 @@ namespace Built.Grpcc
                     continue;
                 foreach (var svr in fileDescriptor.Services)
                 {
-                    if (Descriptor.ContainsKey(svr.Name.ToUpper()))
+                    if (Descriptor.ContainsKey(svr.FullName.ToUpper()))
                         continue;
-                    if (Descriptor.TryAdd(svr.Name.ToUpper(), new ConcurrentDictionary<string, MethodDescriptor>()))
+                    if (Descriptor.TryAdd(svr.FullName.ToUpper(), new ConcurrentDictionary<string, MethodDescriptor>()))
                         foreach (var method in svr.Methods)
                         {
-                            Descriptor[svr.Name.ToUpper()].TryAdd(method.Name.ToUpper(), method);
+                            Descriptor[svr.FullName.ToUpper()].TryAdd(method.Name.ToUpper(), method);
                         }
                 }
             }

@@ -35,11 +35,20 @@ namespace Examples.OcelotGateway
             }
             //, ILoggerFactory loggerFactory
             //loggerFactory.AddConsole();
-            //app.Run(async (context) =>
-            //{
-            //    //CodeBuild.Build("fasdf", "");
-            //    await context.Response.WriteAsync("Hello World!");
-            //});
+            app.Run(async (context) =>
+            {
+                //CodeBuild.Build("fasdf", "");
+
+                var sd = ServiceLocator.GetService<Built.Grpcc.ServiceDescriptor>();
+                foreach (var srv in sd.Descriptor)
+                {
+                    await context.Response.WriteAsync(srv.Key + "\r\n");
+                    foreach (var fuc in srv.Value)
+                    {
+                        await context.Response.WriteAsync("    " + fuc.Key + "\r\n");
+                    }
+                }
+            });
             //ServiceLocator.Instance = app.ApplicationServices;
 
             app.UseOcelot(config =>
