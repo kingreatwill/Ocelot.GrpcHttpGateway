@@ -8,8 +8,7 @@ grpc service gateway used ocelot
 * load .dll files
 * load proto files
 
-##有问题反馈
-在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流
+##Getting Started
 
 * cd samples\OcelotGateway and dotnet run
 * cd samples\Examples.GrpcServer  and dotnet run
