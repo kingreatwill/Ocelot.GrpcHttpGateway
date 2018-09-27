@@ -153,10 +153,10 @@ namespace Built.Grpcc
                             {
                                 using (StreamWriter writer = new StreamWriter(fs, Encoding.Default))
                                 {
-                                    writer.Write($"FileName: {model.FileName}");
-                                    writer.Write($"DllFileMd5: {model.DllFileMd5}");
-                                    writer.Write($"ProtoFileMd5: {model.ProtoFileMd5}");
-                                    writer.Write($"XmlFileMd5: {model.XmlFileMd5}");
+                                    writer.WriteLine($"FileName: {model.FileName}");
+                                    writer.WriteLine($"DllFileMd5: {model.DllFileMd5}");
+                                    writer.WriteLine($"ProtoFileMd5: {model.ProtoFileMd5}");
+                                    writer.WriteLine($"XmlFileMd5: {model.XmlFileMd5}");
                                     writer.Flush();
                                 }
                             }

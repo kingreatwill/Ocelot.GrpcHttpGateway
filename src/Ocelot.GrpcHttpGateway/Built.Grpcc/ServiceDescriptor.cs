@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.Reflection;
+﻿using Built.Grpcc.Utils;
+using Google.Protobuf.Reflection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,13 +27,21 @@ namespace Built.Grpcc
                     continue;
                 foreach (var svr in fileDescriptor.Services)
                 {
-                    if (Descriptor.ContainsKey(svr.FullName.ToUpper()))
-                        continue;
-                    if (Descriptor.TryAdd(svr.FullName.ToUpper(), new ConcurrentDictionary<string, MethodDescriptor>()))
-                        foreach (var method in svr.Methods)
-                        {
-                            Descriptor[svr.FullName.ToUpper()].TryAdd(method.Name.ToUpper(), method);
-                        }
+                    var srvName = svr.FullName.ToUpper();
+                    var methodDic = new ConcurrentDictionary<string, MethodDescriptor>();
+                    foreach (var method in svr.Methods)
+                    {
+                        methodDic.TryAdd(method.Name.ToUpper(), method);
+                    }
+                    Descriptor.AddOrUpdate(srvName, methodDic);
+
+                    //if (Descriptor.ContainsKey(srvName))
+                    //    continue;
+                    //if (Descriptor.TryAdd(srvName, new ConcurrentDictionary<string, MethodDescriptor>()))
+                    //    foreach (var method in svr.Methods)
+                    //    {
+                    //        Descriptor[srvName].TryAdd(method.Name.ToUpper(), method);
+                    //    }
                 }
             }
         }
