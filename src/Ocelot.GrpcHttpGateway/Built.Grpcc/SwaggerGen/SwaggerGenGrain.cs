@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Orleans;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.Orleans.SwaggerGen;
 using System;
@@ -9,21 +8,23 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Swashbuckle.Orleans.SwaggerGen
+namespace Built.Grpcc.SwaggerGen
 {
-    public class SwaggerGenGrain :Grain, ISwaggerGenGrain
+    public class SwaggerGenGrain : ISwaggerGenGrain
     {
         private readonly ISwaggerProvider swaggerProvider;
-        private readonly OrleansSwaggerGenOptions options;
-        public SwaggerGenGrain(ISwaggerProvider swaggerProvider, IOptions<OrleansSwaggerGenOptions> options)
+        private readonly GrpcSwaggerGenOptions options;
+
+        public SwaggerGenGrain(ISwaggerProvider swaggerProvider, IOptions<GrpcSwaggerGenOptions> options)
         {
             this.swaggerProvider = swaggerProvider;
             this.options = options.Value;
         }
+
         public Task<string> Generator()
         {
             var jsonSerializerSettings = new JsonSerializerSettings();
-            var swagger = swaggerProvider.GetSwagger(options.DocumentName,options.Host,options.BasePath,options.Schemes.ToArray());
+            var swagger = swaggerProvider.GetSwagger(options.DocumentName, options.Host, options.BasePath, options.Schemes.ToArray());
 
             JsonSerializer _swaggerSerializer = new JsonSerializer
             {
@@ -37,7 +38,7 @@ namespace Swashbuckle.Orleans.SwaggerGen
             {
                 _swaggerSerializer.Serialize(writer, swagger);
             }
-            return Task.FromResult( jsonBuilder.ToString());
+            return Task.FromResult(jsonBuilder.ToString());
         }
     }
 }

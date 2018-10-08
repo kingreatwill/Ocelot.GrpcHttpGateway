@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.Orleans.SwaggerGen;
+using Built.Grpcc.SwaggerGen;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -12,9 +12,9 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddOrleansSwaggerGen(
             this IServiceCollection services,
-            Action<OrleansSwaggerGenOptions> orleansOption, Action<SwaggerGenOptions> swaggerAction = null)
+            Action<GrpcSwaggerGenOptions> orleansOption, Action<SwaggerGenOptions> swaggerAction = null)
         {
-            OrleansSwaggerGenOptions swaggerGenOptions = new OrleansSwaggerGenOptions();
+            GrpcSwaggerGenOptions swaggerGenOptions = new GrpcSwaggerGenOptions();
             orleansOption.Invoke(swaggerGenOptions);
 
             services.AddSwaggerGen(opt =>
@@ -22,11 +22,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 opt.ParameterFilter<GrainKeyParmeterFilter>(swaggerGenOptions);
                 swaggerAction?.Invoke(opt);
             });
-            services.Configure<OrleansSwaggerGenOptions>(orleansOption);
+            services.Configure<GrpcSwaggerGenOptions>(orleansOption);
             services.AddSingleton<IApiDescriptionGroupCollectionProvider, OrleansApiDescriptionGroupCollectionProvider>();
             return services;
         }
-
-
     }
 }

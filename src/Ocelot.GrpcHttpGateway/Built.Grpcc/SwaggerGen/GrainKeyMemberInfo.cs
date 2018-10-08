@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 
-namespace Swashbuckle.Orleans.SwaggerGen
+namespace Built.Grpcc.SwaggerGen
 {
     public class GrainKeyMemberInfo : MemberInfo
     {
@@ -12,8 +12,8 @@ namespace Swashbuckle.Orleans.SwaggerGen
         {
             this.DeclaringType = declaringType;
             this.Name = name;
-
         }
+
         public override Type DeclaringType { get; }
 
         public override MemberTypes MemberType

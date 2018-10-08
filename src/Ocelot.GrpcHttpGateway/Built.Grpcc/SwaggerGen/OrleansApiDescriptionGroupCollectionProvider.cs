@@ -18,7 +18,6 @@ using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
-using Orleans;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -27,14 +26,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Swashbuckle.Orleans.SwaggerGen
+namespace Built.Grpcc.SwaggerGen
 {
     public class OrleansApiDescriptionGroupCollectionProvider : IApiDescriptionGroupCollectionProvider
     {
-        private readonly OrleansSwaggerGenOptions options;
-        public OrleansApiDescriptionGroupCollectionProvider(IOptions<OrleansSwaggerGenOptions> options)
+        private readonly GrpcSwaggerGenOptions options;
+
+        public OrleansApiDescriptionGroupCollectionProvider(IOptions<GrpcSwaggerGenOptions> options)
         {
-            this.options = options?.Value ?? new OrleansSwaggerGenOptions();
+            this.options = options?.Value ?? new GrpcSwaggerGenOptions();
         }
 
         public ApiDescriptionGroupCollection ApiDescriptionGroups
@@ -124,7 +124,6 @@ namespace Swashbuckle.Orleans.SwaggerGen
 
             var constraintResolver = new Mock<IInlineConstraintResolver>();
             constraintResolver.Setup(i => i.ResolveConstraint("int")).Returns(new IntRouteConstraint());
-
 
             var provider = new DefaultApiDescriptionProvider(
                 Options.Create(options),

@@ -1,12 +1,11 @@
-﻿using Orleans;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Swashbuckle.Orleans.SwaggerGen
+namespace Built.Grpcc.SwaggerGen
 {
-    public interface ISwaggerGenGrain:IGrainWithGuidKey
+    public interface ISwaggerGenGrain
     {
         Task<string> Generator();
     }

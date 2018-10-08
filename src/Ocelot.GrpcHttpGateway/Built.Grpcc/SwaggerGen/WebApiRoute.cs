@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Swashbuckle.Orleans.SwaggerGen
+namespace Built.Grpcc.SwaggerGen
 {
     public class WebApiRoute
     {
-       public WebApiRoute (string controllerName,string routeTemplate)
+        public WebApiRoute(string controllerName, string routeTemplate)
         {
             this.ControllerName = controllerName;
             this.RouteTemplate = routeTemplate;
         }
-        public string ControllerName { get;  }
+
+        public string ControllerName { get; }
 
         public string RouteTemplate { get; }
     }

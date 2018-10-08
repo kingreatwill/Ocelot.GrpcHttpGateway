@@ -8,15 +8,13 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 
-namespace Swashbuckle.Orleans.SwaggerGen
+namespace Built.Grpcc.SwaggerGen
 {
     /// <summary>
-    /// Methods for detecting 
+    /// Methods for detecting
     /// </summary>
     public static class TypeExtensions
     {
-
-      
         /// <summary>
         /// Returns true if it is a dynamic object
         /// </summary>
@@ -115,7 +113,6 @@ namespace Swashbuckle.Orleans.SwaggerGen
                 return false;
 
             return type.GetTypeInfo().IsValueType && !IsSimpleType(type) && !IsImmutableArray(type);
-
         }
 
         /// <summary>
@@ -142,7 +139,6 @@ namespace Swashbuckle.Orleans.SwaggerGen
                 return false;
 
             return type.GetTypeInfo().IsClass;
-
         }
 
         /// <summary>
@@ -156,7 +152,6 @@ namespace Swashbuckle.Orleans.SwaggerGen
                 return false;
 
             return type.GetTypeInfo().IsInterface;
-
         }
 
         /// <summary>
@@ -196,7 +191,6 @@ namespace Swashbuckle.Orleans.SwaggerGen
                 return false;
 
             return type.GetTypeInfo().IsEnum;
-
         }
 
         /// <summary>
@@ -355,7 +349,6 @@ namespace Swashbuckle.Orleans.SwaggerGen
                    || type == typeof(string)
                    || type == typeof(Guid)
                    || type == typeof(Decimal);
-
         }
 
         /// <summary>
@@ -423,7 +416,6 @@ namespace Swashbuckle.Orleans.SwaggerGen
             return type == typeof(DataRow);
         }
 
-
         /// <summary>
         /// Returns true if the Type is Data Column
         /// </summary>
@@ -438,4 +430,3 @@ namespace Swashbuckle.Orleans.SwaggerGen
         }
     }
 }
-
