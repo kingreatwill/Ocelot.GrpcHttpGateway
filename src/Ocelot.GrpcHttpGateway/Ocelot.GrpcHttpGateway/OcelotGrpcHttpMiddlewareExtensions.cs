@@ -120,6 +120,8 @@ namespace Ocelot.GrpcHttpGateway
         public static IOcelotPipelineBuilder UseGrpcHttpMiddleware(this IOcelotPipelineBuilder builder)
         {
             ServiceLocator.Instance = builder.ApplicationServices;
+            //FileConfiguration
+            //builder.ApplicationServices.GetService<GrpcPluginFactory>();
             var plugin = ServiceLocator.GetService<GrpcPluginFactory>();
             var proto = ServiceLocator.GetService<GrpcProtoFactory>();
             plugin.InitAsync();
