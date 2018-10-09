@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.Orleans.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +11,7 @@ namespace Built.Grpcc.SwaggerGen
 {
     public class SwaggerGenGrain : ISwaggerGenGrain
     {
-        private readonly ISwaggerProvider swaggerProvider;
+        private readonly ISwaggerProvider swaggerProvider;//SwaggerGenerator
         private readonly GrpcSwaggerGenOptions options;
 
         public SwaggerGenGrain(ISwaggerProvider swaggerProvider, IOptions<GrpcSwaggerGenOptions> options)

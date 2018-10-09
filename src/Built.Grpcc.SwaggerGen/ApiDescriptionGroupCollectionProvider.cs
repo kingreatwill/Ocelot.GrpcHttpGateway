@@ -42,7 +42,7 @@ namespace Built.Grpcc.SwaggerGen
             get
             {
                 var apiDescriptions = GetApiDescriptions();
-                var group = new ApiDescriptionGroup("default", apiDescriptions);
+                var group = new ApiDescriptionGroup("default", apiDescriptions);//default 可以是srvName或者dllName
                 return new ApiDescriptionGroupCollection(new[] { group }, 1);
             }
         }
@@ -51,26 +51,24 @@ namespace Built.Grpcc.SwaggerGen
         {
             return options.GrainAssembly.GetTypes()
                   .Where(type =>
-                  typeof(IGrain).IsAssignableFrom(type)
-                  && type.IsPublic
+                  // typeof(IGrain).IsAssignableFrom(type) &&
+                  type.IsPublic
                   && type.IsInterface
                   && !type.IsGenericType
-                  && type.Module.Name != "Orleans.Core.Abstractions.dll"
                   && !this.options.IgnoreGrainInterfaces.Invoke(type))
                   .SelectMany(interfaceType => interfaceType.GetMethods())
                   .Where(method => method.IsPublic && !this.options.IgnoreGrainMethods.Invoke(method))
                   .Select(method =>
                   {
                       string httpMethod = "POST";
-                      var grainKey = this.ResolveGrainKey(method);
                       var apiRoute = this.options.SetApiRouteTemplateFunc(method);
-                      return CreateActionDescriptor(httpMethod, apiRoute.RouteTemplate, method, apiRoute.ControllerName, grainKey);
+                      return CreateActionDescriptor(httpMethod, apiRoute.RouteTemplate, method, apiRoute.ControllerName);
                   })
                   .ToList();
         }
 
         private ControllerActionDescriptor CreateActionDescriptor(string httpMethod, string routeTemplate, MethodInfo methodInfo,
-            string controllerName, GrainKeyParamterInfo grainKey)
+            string controllerName)
         {
             var descriptor = new ControllerActionDescriptor();
             descriptor.SetProperty(new ApiDescriptionActionData());
@@ -88,8 +86,7 @@ namespace Built.Grpcc.SwaggerGen
 
             descriptor.Parameters = new List<ParameterDescriptor>();
             List<ParameterInfo> ParameterInfos = descriptor.MethodInfo.GetParameters().ToList();
-            if (grainKey.ParameterType != typeof(Guid))
-                ParameterInfos.Insert(0, grainKey);
+
             foreach (var parameterInfo in ParameterInfos)
             {
                 var parameterDescriptor = new ControllerParameterDescriptor
@@ -107,11 +104,11 @@ namespace Built.Grpcc.SwaggerGen
                 if (parameterInfo.ParameterType.CanHaveChildren())
                     parameterDescriptor.BindingInfo.BindingSource = BindingSource.Body;
 
-                if (parameterInfo is GrainKeyParamterInfo)
-                {
-                    routeTemplate += "/{" + grainKey.Name + "}";
-                    parameterDescriptor.BindingInfo.BindingSource = BindingSource.Path;
-                }
+                //if (parameterInfo is GrainKeyParamterInfo)
+                //{
+                //    routeTemplate += "/{" + grainKey.Name + "}";
+                //    parameterDescriptor.BindingInfo.BindingSource = BindingSource.Path;
+                //}
                 descriptor.Parameters.Add(parameterDescriptor);
             };
             descriptor.AttributeRouteInfo = new AttributeRouteInfo { Template = routeTemplate };
@@ -125,7 +122,9 @@ namespace Built.Grpcc.SwaggerGen
             var context = new ApiDescriptionProviderContext(actionDescriptors);
 
             var options = new MvcOptions();
-            options.InputFormatters.Add(new JsonInputFormatter(Mock.Of<ILogger>(), new JsonSerializerSettings(), ArrayPool<char>.Shared, new DefaultObjectPoolProvider(), false));
+            options.InputFormatters.Add(
+                new JsonInputFormatter(Mock.Of<ILogger>(), new JsonSerializerSettings(), ArrayPool<char>.Shared, new DefaultObjectPoolProvider(), false)
+                );
             options.OutputFormatters.Add(new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared));
 
             var constraintResolver = new Mock<IInlineConstraintResolver>();
@@ -155,32 +154,6 @@ namespace Built.Grpcc.SwaggerGen
 
             var compositeDetailsProvider = new DefaultCompositeMetadataDetailsProvider(detailsProviders);
             return new DefaultModelMetadataProvider(compositeDetailsProvider, Options.Create(new MvcOptions()));
-        }
-
-        private GrainKeyParamterInfo ResolveGrainKey(MethodInfo method)
-        {
-            Type type = method.DeclaringType;
-            if (!this.options.GrainInterfaceGrainKeyAsName.TryGetValue(type, out GrainKeyDescription keyDescription))
-                keyDescription = new GrainKeyDescription("grainKey", "");
-
-            Type grainType;
-            if (typeof(IGrainWithGuidCompoundKey).IsAssignableFrom(type) || typeof(IGrainWithGuidKey).IsAssignableFrom(type))
-                grainType = typeof(Guid);
-            else if (typeof(IGrainWithIntegerCompoundKey).IsAssignableFrom(type) || typeof(IGrainWithIntegerKey).IsAssignableFrom(type))
-                grainType = typeof(long);
-            else if (typeof(IGrainWithStringKey).IsAssignableFrom(type) || typeof(IGrainWithStringKey).IsAssignableFrom(type))
-                grainType = typeof(string);
-            else
-                return null;
-
-            //When setting the method does not require GrainKey, set to Guid
-            if (keyDescription.IgnoreGrainKey)
-                grainType = typeof(Guid);
-
-            if (keyDescription.NoNeedKeyMethod.Exists(f => f.Equals(method.Name, StringComparison.OrdinalIgnoreCase)))
-                grainType = typeof(Guid);
-
-            return new GrainKeyParamterInfo(keyDescription.Name, grainType, method);
         }
     }
 }

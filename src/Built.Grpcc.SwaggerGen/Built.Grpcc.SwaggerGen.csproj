@@ -12,4 +12,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="3.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Ocelot.GrpcHttpGateway\Built.Grpcc\Built.Grpcc.csproj" />
+  </ItemGroup>
+
 </Project>

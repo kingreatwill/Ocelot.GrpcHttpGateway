@@ -12,17 +12,17 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddOrleansSwaggerGen(
             this IServiceCollection services,
-            Action<GrpcSwaggerGenOptions> orleansOption, Action<SwaggerGenOptions> swaggerAction = null)
+            Action<GrpcSwaggerGenOptions> option, Action<SwaggerGenOptions> swaggerAction = null)
         {
             GrpcSwaggerGenOptions swaggerGenOptions = new GrpcSwaggerGenOptions();
-            orleansOption.Invoke(swaggerGenOptions);
+            option.Invoke(swaggerGenOptions);
 
             services.AddSwaggerGen(opt =>
             {
                 opt.ParameterFilter<GrainKeyParmeterFilter>(swaggerGenOptions);
                 swaggerAction?.Invoke(opt);
             });
-            services.Configure<GrpcSwaggerGenOptions>(orleansOption);
+            services.Configure<GrpcSwaggerGenOptions>(option);
             services.AddSingleton<IApiDescriptionGroupCollectionProvider, Built.Grpcc.SwaggerGen.ApiDescriptionGroupCollectionProvider>();
             return services;
         }
