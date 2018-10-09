@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 swaggerAction?.Invoke(opt);
             });
             services.Configure<GrpcSwaggerGenOptions>(orleansOption);
-            services.AddSingleton<IApiDescriptionGroupCollectionProvider, OrleansApiDescriptionGroupCollectionProvider>();
+            services.AddSingleton<IApiDescriptionGroupCollectionProvider, Built.Grpcc.SwaggerGen.ApiDescriptionGroupCollectionProvider>();
             return services;
         }
     }

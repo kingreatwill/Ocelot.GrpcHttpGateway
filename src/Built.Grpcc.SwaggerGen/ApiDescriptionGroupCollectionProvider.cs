@@ -28,11 +28,11 @@ using System.Text.RegularExpressions;
 
 namespace Built.Grpcc.SwaggerGen
 {
-    public class OrleansApiDescriptionGroupCollectionProvider : IApiDescriptionGroupCollectionProvider
+    public class ApiDescriptionGroupCollectionProvider : IApiDescriptionGroupCollectionProvider
     {
         private readonly GrpcSwaggerGenOptions options;
 
-        public OrleansApiDescriptionGroupCollectionProvider(IOptions<GrpcSwaggerGenOptions> options)
+        public ApiDescriptionGroupCollectionProvider(IOptions<GrpcSwaggerGenOptions> options)
         {
             this.options = options?.Value ?? new GrpcSwaggerGenOptions();
         }
@@ -50,7 +50,13 @@ namespace Built.Grpcc.SwaggerGen
         private List<ControllerActionDescriptor> CreateActionDescriptors()
         {
             return options.GrainAssembly.GetTypes()
-                  .Where(type => typeof(IGrain).IsAssignableFrom(type) && type.IsPublic && type.IsInterface && !type.IsGenericType && type.Module.Name != "Orleans.Core.Abstractions.dll" && !this.options.IgnoreGrainInterfaces.Invoke(type))
+                  .Where(type =>
+                  typeof(IGrain).IsAssignableFrom(type)
+                  && type.IsPublic
+                  && type.IsInterface
+                  && !type.IsGenericType
+                  && type.Module.Name != "Orleans.Core.Abstractions.dll"
+                  && !this.options.IgnoreGrainInterfaces.Invoke(type))
                   .SelectMany(interfaceType => interfaceType.GetMethods())
                   .Where(method => method.IsPublic && !this.options.IgnoreGrainMethods.Invoke(method))
                   .Select(method =>
