@@ -92,7 +92,7 @@ namespace Built.Grpcc.SwaggerGen
                         parameters = parameters
                     };
 
-                    doc.paths.Add("/" + item.ToString(), new PathItem { post = operation }); // everything post.
+                    doc.paths.Add("/" + item.Service.FullName + "/" + item.Name, new PathItem { post = operation }); // everything post.
                 }
 
                 using (var ms = new MemoryStream())
@@ -343,7 +343,9 @@ namespace Built.Grpcc.SwaggerGen
                 || genTypeDef == typeof(IList<>)
                 || genTypeDef == typeof(List<>)
                 || genTypeDef == typeof(IReadOnlyCollection<>)
-                || genTypeDef == typeof(IReadOnlyList<>))
+                || genTypeDef == typeof(IReadOnlyList<>)
+                || genTypeDef == typeof(Google.Protobuf.Collections.RepeatedField<>)
+                )
                 {
                     return genTypeDef.GetGenericArguments()[0];
                 }

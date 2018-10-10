@@ -24,6 +24,11 @@ namespace Examples.OcelotGateway
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "My API", Version = "v1" });
+            });
             services.AddOcelot(Configuration).AddGrpcHttpGateway(Configuration);
         }
 
@@ -66,7 +71,16 @@ namespace Examples.OcelotGateway
                 app.UseDeveloperExceptionPage();
             }
             app.Map("/srv", HandleHome);
-            app.Map("/swagger", HandleSwagger);
+            app.Map("/swagger/v1/swagger.json", HandleSwagger);
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
             //ServiceLocator.Instance = app.ApplicationServices;
             app.UseOcelot(config =>
             {
