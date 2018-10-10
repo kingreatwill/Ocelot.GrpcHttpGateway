@@ -15,9 +15,8 @@ namespace Built.Grpcc
 
         public ConcurrentDictionary<string, string> SrvGroup { get; } = new ConcurrentDictionary<string, string>();
 
-        public virtual void AddGrpcDescript(string group, Type[] types)
+        public virtual void AddGrpcDescript(string dll, Type[] types)
         {
-            if (string.IsNullOrWhiteSpace(group)) group = "default";
             var fileTypes = types.Where(type => type.Name.EndsWith("Reflection"));
             foreach (var type in fileTypes)
             {
@@ -37,7 +36,7 @@ namespace Built.Grpcc
                         methodDic.TryAdd(method.Name.ToUpper(), method);
                     }
                     Descriptor.AddOrUpdate(srvName, methodDic);
-                    SrvGroup.AddOrUpdate(srvName, group);
+                    SrvGroup.AddOrUpdate(srvName, dll);
                     //if (Descriptor.ContainsKey(srvName))
                     //    continue;
                     //if (Descriptor.TryAdd(srvName, new ConcurrentDictionary<string, MethodDescriptor>()))

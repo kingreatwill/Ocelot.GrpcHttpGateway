@@ -36,14 +36,19 @@ namespace Built.Grpcc.SwaggerGen
         {
             try
             {
-                if (options.XmlDocumentPath != null && !File.Exists(options.XmlDocumentPath))
+                var xmlList = new List<XmlCommentStructure>();
+                foreach (var srvXml in handlers.SrvGroup)
                 {
-                    return Encoding.UTF8.GetBytes("Xml doesn't exists at " + options.XmlDocumentPath);
+                    var xmlDocumentPath = srvXml.Value;
+                    xmlDocumentPath = xmlDocumentPath.Substring(0, xmlDocumentPath.Length - 4) + ".xml";
+                    if (File.Exists(xmlDocumentPath))
+                    {
+                        var lookUp = BuildXmlMemberCommentStructureList(xmlDocumentPath);
+                        xmlList = xmlList.Concat(lookUp).ToList();
+                    }
                 }
-
-                xDocLookup = (options.XmlDocumentPath != null)
-                    ? BuildXmlMemberCommentStructure(options.XmlDocumentPath)
-                    : null;
+                var methodList = handlers.MethodList();
+                xDocLookup = xmlList.ToLookup(x => Tuple.Create(x.ClassName, x.MethodName));
 
                 var doc = new SwaggerDocument();
                 doc.info = options.Info;
@@ -58,7 +63,7 @@ namespace Built.Grpcc.SwaggerGen
                     ? BuildXmlTypeSummary(options.XmlDocumentPath)
                     : null;
 
-                doc.tags = handlers.Descriptor.Keys
+                doc.tags = methodList.Select(t => t.Service.FullName).Distinct()
                     .Select(x =>
                     {
                         string desc = null;
@@ -74,13 +79,12 @@ namespace Built.Grpcc.SwaggerGen
                     })
                     .ToArray();
 
-                // Unary only
-                foreach (var item in handlers.MethodList().Where(x => x.IsClientStreaming == false && x.IsServerStreaming == false))
+                foreach (var item in handlers.MethodList())
                 {
                     XmlCommentStructure xmlComment = null;
                     if (xDocLookup != null)
                     {
-                        xmlComment = xDocLookup[Tuple.Create(item.Service.FullName, item.Name)].FirstOrDefault();
+                        xmlComment = xDocLookup[Tuple.Create(item.Service.Name, item.Name)].FirstOrDefault();
                     }
 
                     var parameters = BuildParameters(doc.definitions, xmlComment, item);
@@ -352,6 +356,37 @@ namespace Built.Grpcc.SwaggerGen
             }
 
             return null; // not collection
+        }
+
+        private static IEnumerable<XmlCommentStructure> BuildXmlMemberCommentStructureList(string xmlDocumentPath)
+        {
+            var file = File.ReadAllText(xmlDocumentPath);
+            var xDoc = XDocument.Parse(file);
+            var xDocLookup = xDoc.Descendants("member")
+                .Where(x => x.Attribute("name").Value.StartsWith("M:"))
+                .Select(x =>
+                {
+                    var match = Regex.Match(x.Attribute("name").Value, @"(\w+)\.(\w+)?(\(.+\)|$)");
+
+                    var summary = ((string)x.Element("summary")) ?? "";
+                    var returns = ((string)x.Element("returns")) ?? "";
+                    var remarks = ((string)x.Element("remarks")) ?? "";
+                    var parameters = x.Elements("param")
+                        .Select(e => Tuple.Create(e.Attribute("name").Value, e))
+                        .Distinct(new Item1EqualityCompaerer<string, XElement>())
+                        .ToDictionary(e => e.Item1, e => e.Item2.Value.Trim());
+
+                    return new XmlCommentStructure
+                    {
+                        ClassName = match.Groups[1].Value,
+                        MethodName = match.Groups[2].Value,
+                        Summary = summary.Trim(),
+                        Remarks = remarks.Trim(),
+                        Parameters = parameters,
+                        Returns = returns.Trim()
+                    };
+                });
+            return xDocLookup;
         }
 
         private static ILookup<Tuple<string, string>, XmlCommentStructure> BuildXmlMemberCommentStructure(string xmlDocumentPath)

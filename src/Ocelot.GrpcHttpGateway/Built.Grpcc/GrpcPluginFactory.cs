@@ -69,7 +69,7 @@ namespace Built.Grpcc
                 byte[] assemblyBuf = File.ReadAllBytes(fileFullPath);
                 var assembly = Assembly.Load(assemblyBuf);
                 var types = assembly.GetTypes();
-                serviceDescriptor.AddGrpcDescript(Path.GetFileNameWithoutExtension(fileFullPath), types);
+                serviceDescriptor.AddGrpcDescript(fileFullPath, types);
                 logger.LogDebug($"Run End[{fileFullPath}]");
             });
         }
