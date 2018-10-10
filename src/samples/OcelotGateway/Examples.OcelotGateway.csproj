@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Built.Grpcc.SwaggerGen\Built.Grpcc.SwaggerGen.csproj" />
     <ProjectReference Include="..\..\Ocelot.GrpcHttpGateway\Ocelot.GrpcHttpGateway\Ocelot.GrpcHttpGateway.csproj" />
   </ItemGroup>
 

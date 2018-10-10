@@ -1,4 +1,5 @@
 ﻿using Built.Grpcc;
+using Built.Grpcc.SwaggerGen;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -42,6 +43,21 @@ namespace Examples.OcelotGateway
             });
         }
 
+        private static void HandleSwagger(IApplicationBuilder app)
+        {
+            app.Run(async context =>
+            {
+                var handlers = ServiceLocator.GetService<Built.Grpcc.ServiceDescriptor>();
+                var builder = new SwaggerDefinitionBuilder(new SwaggerOptions("t", "d", "")
+                {
+                }, context, handlers);
+                var bytes = builder.BuildSwaggerJson();
+                context.Response.Headers["Content-Type"] = new[] { "application/json" };
+                context.Response.StatusCode = 200;
+                await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
+            });
+        }
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
@@ -50,6 +66,7 @@ namespace Examples.OcelotGateway
                 app.UseDeveloperExceptionPage();
             }
             app.Map("/srv", HandleHome);
+            app.Map("/swagger", HandleSwagger);
             //ServiceLocator.Instance = app.ApplicationServices;
             app.UseOcelot(config =>
             {
