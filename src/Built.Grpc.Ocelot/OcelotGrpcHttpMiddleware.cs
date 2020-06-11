@@ -1,5 +1,7 @@
-﻿using Built.Grpcc;
+﻿using Built.Grpc.Pool;
+using Built.Grpcc;
 using Grpc.Core;
+using Microsoft.AspNetCore.Http;
 using Ocelot.Configuration.File;
 using Ocelot.Logging;
 using Ocelot.Middleware;
@@ -12,11 +14,11 @@ namespace Built.Grpc.Ocelot
 {
     public class OcelotGrpcHttpMiddleware : OcelotMiddleware
     {
-        private readonly OcelotRequestDelegate next;
+        private readonly RequestDelegate next;
         private readonly GrpcPool grpcPool;
         private readonly GrpcRequestBuilder grpcRequestBuilder;
 
-        public OcelotGrpcHttpMiddleware(OcelotRequestDelegate next,
+        public OcelotGrpcHttpMiddleware(RequestDelegate next,
             GrpcPool grpcPool,
             GrpcRequestBuilder grpcRequestBuilder,
             IOcelotLoggerFactory factory) : base(factory.CreateLogger<OcelotGrpcHttpMiddleware>())
@@ -26,12 +28,12 @@ namespace Built.Grpc.Ocelot
             this.grpcRequestBuilder = grpcRequestBuilder;
         }
 
-        public async Task Invoke(DownstreamContext context)
+        public async Task Invoke(HttpContext httpContext)
         {
             object result = null;
             var errMessage = string.Empty;
             var httpStatusCode = HttpStatusCode.OK;
-            var buildRequest = grpcRequestBuilder.BuildRequest(context);
+            var buildRequest = grpcRequestBuilder.BuildRequest(httpContext);
             if (buildRequest.IsError)
             {
                 errMessage = "bad request";
@@ -42,7 +44,7 @@ namespace Built.Grpc.Ocelot
             {
                 try
                 {
-                    var channel = grpcPool.GetChannel(new ServiceEndpoint(context.DownstreamRequest.Host, context.DownstreamRequest.Port));
+                    var channel = grpcPool.GetChannel(new ServiceEndpoint(httpContext.Items.DownstreamRequest().Host, httpContext.Items.DownstreamRequest().Port));
                     var client = new MethodDescriptorClient(channel);
                     result = await client.InvokeAsync(buildRequest.Data.GrpcMethod, buildRequest.Data.Headers, buildRequest.Data.RequestMessage);
                 }
@@ -56,7 +58,7 @@ namespace Built.Grpc.Ocelot
                 {
                     httpStatusCode = HttpStatusCode.ServiceUnavailable;
                     errMessage = $"error in request grpc service.";
-                    Logger.LogError($"{errMessage}--{context.DownstreamRequest.ToUri()}", ex);
+                    Logger.LogError($"{errMessage}--{httpContext.Items.DownstreamRequest().ToUri()}", ex);
                 }
             }
             OkResponse<GrpcHttpContent> httpResponse;
@@ -68,8 +70,9 @@ namespace Built.Grpc.Ocelot
             {
                 httpResponse = new OkResponse<GrpcHttpContent>(new GrpcHttpContent(errMessage));
             }
-            context.HttpContext.Response.ContentType = "application/json";
-            context.DownstreamResponse = new DownstreamResponse(httpResponse.Data, httpStatusCode, httpResponse.Data.Headers, "OcelotGrpcHttpMiddleware");
+            httpContext.Response.ContentType = "application/json";
+            httpContext.Items.UpsertDownstreamResponse(new DownstreamResponse(httpResponse.Data, httpStatusCode, httpResponse.Data.Headers, "OcelotGrpcHttpMiddleware"));
+            // httpContext.DownstreamResponse = new DownstreamResponse(httpResponse.Data, httpStatusCode, httpResponse.Data.Headers, "OcelotGrpcHttpMiddleware");
         }
     }
 }

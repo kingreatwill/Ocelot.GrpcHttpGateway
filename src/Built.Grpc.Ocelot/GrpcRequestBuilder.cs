@@ -25,9 +25,10 @@ namespace Built.Grpc.Ocelot
             this.descriptor = descriptor;
         }
 
-        public Response<GrpcRequest> BuildRequest(DownstreamContext context)
+        public Response<GrpcRequest> BuildRequest(HttpContext httpContext)
         {
-            var route = context.DownstreamRequest.AbsolutePath.Trim('/').Split('/');
+            var downstreamRoute = httpContext.Items.DownstreamRoute();
+            var route = httpContext.Items.DownstreamRequest().AbsolutePath.Trim('/').Split('/');
             if (route.Length != 2)
             {
                 return SetError($"error request:{route},must do like this:http://domain:port/grpc/ServiceName/MethordName/");
@@ -47,29 +48,29 @@ namespace Built.Grpc.Ocelot
             GrpcRequest grpcRequest = new GrpcRequest
             {
                 GrpcMethod = grpcDescript[svcName][methodName],
-                Headers = GetRequestHeaders(context)
+                Headers = GetRequestHeaders(httpContext)
             };
             try
             {
                 //需要替换Scheme
-                context.DownstreamRequest.Scheme = "http";
-                var requestJson = GetRequestJson(context);
+                httpContext.Items.DownstreamRequest().Scheme = "http";
+                var requestJson = GetRequestJson(httpContext);
                 grpcRequest.RequestMessage = JsonConvert.DeserializeObject(requestJson, grpcRequest.GrpcMethod.InputType.ClrType);
             }
             catch (Exception)
             {
                 return SetError("request parameter error");
             }
-            context.DownstreamRequest.Scheme = "grpc";
+            httpContext.Items.DownstreamRequest().Scheme = "grpc";
             return new OkResponse<GrpcRequest>(grpcRequest);
         }
 
-        private string GetRequestJson(DownstreamContext context)
+        private string GetRequestJson(HttpContext context)
         {
-            if (context.HttpContext.Request.Method == "GET")
+            if (context.Request.Method == "GET")
             {
                 JObject o = new JObject();
-                foreach (var q in context.HttpContext.Request.Query)
+                foreach (var q in context.Request.Query)
                 {
                     o.Add(q.Key, q.Value.ToString());
                 }
@@ -78,8 +79,8 @@ namespace Built.Grpc.Ocelot
             else
             {
                 var json = "{}";
-                var encoding = context.HttpContext.Request.GetTypedHeaders().ContentType?.Encoding ?? Encoding.UTF8;
-                using (var sr = new StreamReader(context.HttpContext.Request.Body, encoding))
+                var encoding = context.Request.GetTypedHeaders().ContentType?.Encoding ?? Encoding.UTF8;
+                using (var sr = new StreamReader(context.Request.Body, encoding))
                 {
                     json = sr.ReadToEnd();
                 }
@@ -94,10 +95,10 @@ namespace Built.Grpc.Ocelot
         }
 
         // http header to grpc header
-        private IDictionary<string, string> GetRequestHeaders(DownstreamContext context)
+        private IDictionary<string, string> GetRequestHeaders(HttpContext context)
         {
             Dictionary<string, string> headers = new Dictionary<string, string>();
-            foreach (string key in context.HttpContext.Request.Headers.Keys)
+            foreach (string key in context.Request.Headers.Keys)
             {
                 string grpcKey = null;
                 string prefix = "grpc.";
@@ -109,7 +110,7 @@ namespace Built.Grpc.Ocelot
                 {
                     continue;
                 }
-                Microsoft.Extensions.Primitives.StringValues value = context.HttpContext.Request.Headers[key];
+                Microsoft.Extensions.Primitives.StringValues value = context.Request.Headers[key];
                 headers.Add(grpcKey, value.FirstOrDefault());
             }
             return headers;
