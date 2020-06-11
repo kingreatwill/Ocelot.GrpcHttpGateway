@@ -24,6 +24,11 @@ namespace Built.Grpc.Ocelot
         public static IApplicationBuilder UseGrpcHttpMiddleware(this IApplicationBuilder builder)
         {
             ServiceLocator.Instance = builder.ApplicationServices;
+            var plugin = ServiceLocator.GetService<GrpcPluginFactory>();
+            var proto = ServiceLocator.GetService<GrpcProtoFactory>();
+            plugin.InitAsync();
+            proto.InitAsync();
+
             return builder.UseMiddleware<OcelotGrpcHttpMiddleware>();
         }
     }
