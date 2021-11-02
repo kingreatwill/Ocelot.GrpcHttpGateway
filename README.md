@@ -2,7 +2,7 @@
 grpc service gateway used ocelot
 
 
-> master not available  ,see https://github.com/BuiltCloud/Ocelot.GrpcHttpGateway/tree/v0.0.1
+> master not available  ,see https://github.com/kingreatwill/Ocelot.GrpcHttpGateway/tree/v0.0.1
 
 ## What functions does he have?
 
